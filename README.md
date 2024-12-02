@@ -38,3 +38,38 @@ The repository is organized as follows:
 `Makefile`
 
   - contains rules for building the report
+  
+## Steps to Reproduce
+1. Install R Environment  
+This project uses the renv package to ensure reproducibility. Install the required R packages by running:  
+make install  
+This command restores the project-specific R environment based on the renv.lock file.
+
+2. Build the Report  
+To execute the entire analysis and generate the final report, run:  
+make  
+This command performs the following steps:  
+- Cleans and processes the raw data.  
+- Conducts descriptive analysis and generates plots and tables.  
+- Models the data and saves the outputs.  
+- Renders the final report as final_report.html in the output/ folder.  
+
+3. Synchronize Your Package Repository  
+To ensure the repository includes all required package dependencies:  
+- Capture New Dependencies:  
+  Run the following command to update the renv.lock file with any new dependencies:  
+  renv::snapshot()  
+
+- Restore Dependencies (For Collaborators):  
+  If dependencies have changed, restore them by running:  
+  make install
+  
+- Commit Changes to GitHub:  
+  Ensure the renv.lock file and renv/ folder are pushed to the repository:  
+  git add renv.lock renv/  
+  git commit -m "Update package dependencies"  
+  git push  
+
+4. Clean Up Generated Files  
+To remove all generated files (e.g., .rds, .png, and the rendered report), use:  
+make clean

@@ -10,6 +10,10 @@ FIGURES_DIR=$(OUTPUT_DIR)/figures
 # Default target: Render the final report
 all: $(OUTPUT_DIR)/final_report.html
 
+# Step 0: Install R environment
+install:
+	Rscript -e 'renv::restore()'
+
 # Step 1: Data Processing
 $(CLEANED_DATA): $(DATA_DIR)/raw_data.csv $(CODE_DIR)/01_data_processing.R
 	Rscript $(CODE_DIR)/01_data_processing.R
