@@ -1,35 +1,46 @@
-# Variables
-DATA_DIR=data
-OUTPUT_DIR=output
-CODE_DIR=code
-REPORT=final_report.Rmd
-CLEANED_DATA=$(DATA_DIR)/cleaned_data.rds
-TABLES_DIR=$(OUTPUT_DIR)/tables
-FIGURES_DIR=$(OUTPUT_DIR)/figures
-
-# Default target: Render the final report
-all: $(OUTPUT_DIR)/final_report.html
-
-# Step 0: Install R environment
-install:
-	Rscript -e 'renv::restore()'
-
-# Step 1: Data Processing
-$(CLEANED_DATA): $(DATA_DIR)/raw_data.csv $(CODE_DIR)/01_data_processing.R
-	Rscript $(CODE_DIR)/01_data_processing.R
+# Step 1: clean the data
+data/clean_data.csv: data/raw_data.csv code/01_data_processing.R
+	Rscript code/01_data_processing.R
 
 # Step 2: Descriptive Statistics
-$(TABLES_DIR)/descriptive_table.rds $(FIGURES_DIR)/descriptive_plots.png: $(CLEANED_DATA) $(CODE_DIR)/02_descriptive_stats.R
-	Rscript $(CODE_DIR)/02_descriptive_stats.R
+output/descriptive_stats_table.rds output/scatterplot_overall_fig1.rds output/scatterplot_gender_fig2.rds output/scatterplot_ethnicity_fig3.rds: data/clean_data.csv code/02_descriptive_stats.R
+	Rscript code/02_descriptive_stats.R
 
 # Step 3: Modeling
-$(FIGURES_DIR)/model_plot.png: $(CLEANED_DATA) $(CODE_DIR)/03_modeling.R
-	Rscript $(CODE_DIR)/03_modeling.R
+output/linear_model_results.rds output/key_model_summary.rds: data/clean_data.csv code/03_modeling.R
+	Rscript code/03_modeling.R
 
 # Step 4: Render Report
-$(OUTPUT_DIR)/final_report.html: $(REPORT) $(CLEANED_DATA) $(TABLES_DIR)/descriptive_table.rds $(FIGURES_DIR)/model_plot.png $(CODE_DIR)/04_render_report.R
-	Rscript $(CODE_DIR)/04_render_report.R
+final_report.html: final_report.Rmd code/04_render_report.R data/data_clean.csv output/descriptive_stats_table.rds output/scatterplot_overall_fig1.rds output/scatterplot_gender_fig2.rds output/scatterplot_ethnicity_fig3.rds output/linear_model_results.rds output/key_model_summary.rds
+	Rscript code/04_render_report.R
 
+# Install dependencies with renv
+.PHONY: install
+install:
+	Rscript -e "renv::restore(prompt = FALSE)"
+	
 # Clean up generated files
+.PHONY: clean
 clean:
-	rm -rf $(CLEANED_DATA) $(TABLES_DIR)/*.rds $(FIGURES_DIR)/*.png $(OUTPUT_DIR)/final_report.html
+	rm -f data/clean_data.csv \
+	      output/descriptive_stats_table.rds \
+	      output/scatterplot_overall_fig1.rds \
+	      output/scatterplot_gender_fig2.rds \
+	      output/scatterplot_ethnicity_fig3.rds \
+	      output/linear_model_results.rds \
+	      output/key_model_summary.rds \
+	      final_report.html
+	      
+# Docker-associated rules (run on our local machine)
+PROJECTFILES = final_report.Rmd code/01_data_processing.R code/02_descriptive_stats.R code/03_modeling.R code/04_render_report.R Makefile
+RENVFILES = renv.lock renv/activate.R renv/settings.json
+
+#rule to build image
+final_project_docker_image: Dockerfile $(PROJECTFILES) $(RENVFILES)
+	docker build -t jianiw516/final_project_docker_image .
+	touch $@
+
+# Docker-associated rule: Run the report generation
+run_report:
+	docker run --rm -v "$(shell pwd):/project" jianiw516/final_project_docker_image
+
