@@ -1,0 +1,100 @@
+---
+title: "Final Project Report - Pandemic Vaccine Analysis"
+author: "Jiani Wang"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+# Introduction
+
+## Description of the data set
+
+ - The dataset is a mock dataset from a clincal trial on pandemic influenza vaccines.
+ - The dataset include participant-level information on immunogenicity, reactogenicity, and varying demographics, along with details on different vaccine formulations, antigens, and adjuvants.
+ - The cleaned data set with all missing values removed contains 202 observations and 16 variables.
+
+## Analysis objectives
+
+ - Explore the associations between immunogenicity and reactogenicity across gender and ethnicity.
+ - The exposure would be reactogenicity (reaction scores). The outcome would be immunogeicity (log transformed HAI titers).
+
+# Read in data
+```{r, load-data, echo=FALSE, warning=FALSE, message=FALSE}
+here::i_am("final_report.Rmd")
+
+clean_data <- read.csv(
+  file = here::here("data/clean_data.csv")
+)
+```
+
+
+# Descriptive Statistics
+## Table Summary
+
+Characteristics of the `r nrow(clean_data)` participants from the pandemic vaccine data set are displayed in the table below.
+
+```{r, table}
+descriptive_stats_table <- readRDS(
+  file = here::here("output/descriptive_stats_table.rds")
+)
+descriptive_stats_table
+```
+
+ - The average age of participants is 54 years, with a slightly younger mean age for females (53 years) compared to males (55 years).
+
+ - The majority of participants identify as White (88%), followed by smaller proportions of Asian (5.9%), Black/African American (2.5%), and Hispanic/Latino (2.5%).
+
+ - Log-transformed HAI titers are marginally higher for males (2.46) than females (2.37).
+ 
+ - The mean reaction score is 3.69 overall, with males showing slightly higher scores (3.78) than females (3.64).
+
+
+## Scatterplot of Overall Relationship Between Reaction Scores and Log HAI Titers
+```{r, scatterplot_overall_fig1, echo=FALSE, warning=FALSE}
+scatterplot_overall_fig1 <- readRDS(
+  here::here("output/scatterplot_overall_fig1.rds")
+)
+scatterplot_overall_fig1
+```
+
+From this scatterplot, we can directly see a positive relationship between reaction scores and log HAI titers. 
+
+
+## Scatterplot stratified by GENDER
+```{r, scatterplot_gender_fig2, echo=FALSE, warning=FALSE}
+scatterplot_gender_fig2 <- readRDS(
+  here::here("output/scatterplot_gender_fig2.rds")
+)
+scatterplot_gender_fig2
+```
+
+The scatterplot stratified by gender shows a generally positive relationship between reaction scores and log HAI titers for both males (blue) and females (red). Males tend to have a slightly steeper slope compared to females, suggesting that for the same increase in reaction scores, log HAI titers tend to be somewhat higher in males.
+ 
+## Scatterplot stratified by ETHNICITY
+```{r, scatterplot_ethnicity_fig3, echo=FALSE, warning=FALSE}
+scatterplot_ethnicity_fig3 <- readRDS(
+  here::here("output/scatterplot_ethnicity_fig3.rds")
+)
+scatterplot_ethnicity_fig3
+```
+
+The scatterplot stratified by ethnicity reveals a positive relationship between reaction scores and log HAI titers across all ethnic groups. Asian and Hispanic/Latino groups exhibit steeper slopes, indicating a stronger increase in log HAI titers as reaction scores rise. The American Indian/Alaskan group shows a more moderate slope and appears to have a lower overall range of reaction scores and log titers.
+
+# Modeling
+## Model Fitting
+```{r, model_fitting, echo=FALSE, warning=FALSE}
+linear_model_results <- readRDS(
+  here::here("output/linear_model_results.rds")
+)
+linear_model_results
+```
+
+## Key Summary
+```{r, key_summary, echo=FALSE, warning=FALSE}
+key_model_summary <- readRDS(
+  here::here("output/key_model_summary.rds")
+)
+key_model_summary
+```
+
+A statistically significant positive relationship exists between reaction_scores and log_hai_titer (estimate = 0.42, p < 0.001).This suggests that higher reaction scores are associated with higher log-transformed HAI titers.The significant positive interaction term (estimate = 0.26, p = 0.036) implies that for Asian participants, the relationship between reaction scores and log HAI titers becomes stronger compared to the baseline. The interaction for White ethnicity is borderline significant (estimate = 0.19, p = 0.051). This suggests a potential influence of ethnicity in modulating the relationship.
